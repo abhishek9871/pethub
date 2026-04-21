@@ -4,6 +4,7 @@
  */
 
 import { useEffect } from 'react';
+import { PayPalScriptProvider } from '@paypal/react-paypal-js';
 import { AppStateProvider, useAppState } from './store/AppStateContext';
 import { CartProvider, useCart } from './store/CartContext';
 import { TopBar } from './components/TopBar';
@@ -17,6 +18,12 @@ import { FAQView } from './views/FAQ';
 import { ShippingView } from './views/Shipping';
 import { ContactView } from './views/Contact';
 import { StoryView } from './views/Story';
+import { CheckoutSuccessView } from './views/CheckoutSuccess';
+import { CheckoutCancelView } from './views/CheckoutCancel';
+
+// PayPal client ID — loaded from env or defaults to sandbox test ID
+// In production, set VITE_PAYPAL_CLIENT_ID in your .env file
+const PAYPAL_CLIENT_ID = import.meta.env.VITE_PAYPAL_CLIENT_ID || 'test';
 
 function Layout() {
   const { currentView, selectedProduct, isMenuOpen } = useAppState();
@@ -28,7 +35,7 @@ function Layout() {
     } else {
       document.body.style.overflow = 'unset';
     }
-    
+
     return () => {
       document.body.style.overflow = 'unset';
     };
@@ -43,6 +50,8 @@ function Layout() {
         {currentView === 'shipping' && <ShippingView />}
         {currentView === 'contact' && <ContactView />}
         {currentView === 'story' && <StoryView />}
+        {currentView === 'checkout-success' && <CheckoutSuccessView />}
+        {currentView === 'checkout-cancel' && <CheckoutCancelView />}
       </main>
       <Footer />
       <BottomNav />
@@ -55,10 +64,19 @@ function Layout() {
 
 export default function App() {
   return (
-    <AppStateProvider>
-      <CartProvider>
-        <Layout />
-      </CartProvider>
-    </AppStateProvider>
+    <PayPalScriptProvider
+      options={{
+        clientId: PAYPAL_CLIENT_ID,
+        currency: 'USD',
+        intent: 'capture',
+        components: 'buttons',
+      }}
+    >
+      <AppStateProvider>
+        <CartProvider>
+          <Layout />
+        </CartProvider>
+      </AppStateProvider>
+    </PayPalScriptProvider>
   );
 }

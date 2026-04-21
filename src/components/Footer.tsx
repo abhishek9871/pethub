@@ -1,12 +1,13 @@
 import { useAppState } from '../store/AppStateContext';
+import { PetHubLogo } from './PetHubLogo';
 
 export function Footer() {
   const { navigate } = useAppState();
 
   return (
     <footer className="w-full rounded-t-[3rem] mt-16 bg-surface-container-low flex flex-col items-center text-center px-10 py-16 gap-8 pb-32 md:pb-16 text-primary">
-      <div className="text-xl font-bold text-on-surface mb-6 font-headline tracking-tighter">
-        PetHub
+      <div className="mb-4">
+        <PetHubLogo size={36} />
       </div>
       
       <div className="flex flex-col md:flex-row gap-6 md:gap-12 w-full justify-center text-xs tracking-widest uppercase text-on-surface-variant font-bold">

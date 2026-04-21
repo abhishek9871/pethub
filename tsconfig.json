@@ -21,6 +21,13 @@
       ]
     },
     "allowImportingTsExtensions": true,
-    "noEmit": true
-  }
+    "noEmit": true,
+    "types": [
+      "@cloudflare/workers-types/2023-07-01"
+    ]
+  },
+  "include": [
+    "src",
+    "functions"
+  ]
 }

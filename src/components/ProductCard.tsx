@@ -1,54 +1,82 @@
 import { useAppState } from '../store/AppStateContext';
 import { Product } from '../data/products';
-import { cn } from '../lib/utils';
-import { Heart, ArrowRight } from 'lucide-react';
+import { ArrowRight, Star } from 'lucide-react';
 
 export function ProductCard({ product }: { product: Product }) {
   const { openProduct } = useAppState();
 
   return (
-    <article 
+    <article
       className="flex flex-col group cursor-pointer soft-spring"
       onClick={() => openProduct(product)}
+      id={`product-card-${product.id}`}
     >
-      <div className="relative w-full aspect-[4/5] rounded-[1.5rem] overflow-hidden bg-surface-container-low mb-6">
-        <img 
-          src={product.thumbnail} 
-          alt={product.name}
-          className="object-cover w-full h-full soft-spring group-hover:scale-105"
-          referrerPolicy="no-referrer"
+      <div className="relative w-full aspect-square rounded-[1.5rem] overflow-hidden bg-white mb-6 border border-surface-container">
+        <img
+          src={product.images[0]}
+          alt={product.title}
+          className="object-contain w-full h-full p-4 soft-spring group-hover:scale-105"
           loading="lazy"
+          width={400}
+          height={400}
         />
-        
+
+        {/* Badges — stacked vertically on top-left, clean layout */}
         {product.badges.length > 0 && (
-          <div className="absolute top-4 left-4">
-            <span className="bg-secondary-container text-on-secondary-container px-3 py-1 rounded-[0.5rem] text-[0.75rem] font-bold tracking-[0.05em] uppercase shadow-sm">
-              {product.badges[0]}
+          <div className="absolute top-3 left-3 flex flex-col gap-1.5">
+            {product.badges.slice(0, 1).map((badge) => (
+              <span
+                key={badge}
+                className="bg-on-surface text-surface-container-lowest px-3 py-1 rounded-full text-[0.65rem] font-bold tracking-[0.03em] uppercase shadow-sm whitespace-nowrap"
+              >
+                {badge}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {product.pricing.compareAtPrice && (
+          <div className="absolute top-3 right-3">
+            <span className="bg-red-600 text-white px-2.5 py-1 rounded-full text-[0.65rem] font-bold tracking-[0.03em] shadow-sm whitespace-nowrap">
+              Save ${(product.pricing.compareAtPrice - product.pricing.sellPrice).toFixed(0)}
             </span>
           </div>
         )}
-        
-        <button 
-          className="absolute bottom-4 right-4 w-12 h-12 rounded-full bg-surface-container-lowest shadow-[0_8px_24px_rgba(48,51,49,0.06)] flex items-center justify-center text-on-surface soft-spring hover:scale-110 active:scale-95"
-          onClick={(e) => {
-            e.stopPropagation();
-            // Optional wishlist functionality here
-          }}
-        >
-          <Heart className="w-5 h-5" />
-        </button>
       </div>
-      
-      <div className="flex flex-col px-2">
-        <h3 className="text-lg font-bold tracking-tight text-on-surface mb-1 font-headline">
-          {product.name}
+
+      <div className="flex flex-col px-1">
+        <h3 className="text-base font-bold tracking-tight text-on-surface mb-1 font-headline leading-snug">
+          {product.title}
         </h3>
-        <p className="text-sm text-on-surface-variant mb-3 line-clamp-1">
+        <p className="text-xs text-on-surface-variant mb-2">
           {product.category}
         </p>
-        
+
+        {product.rating && (
+          <div className="flex items-center gap-1.5 mb-3">
+            <div className="flex items-center">
+              {[...Array(5)].map((_, i) => (
+                <Star
+                  key={i}
+                  className={`w-3.5 h-3.5 ${i < Math.round(product.rating!.score) ? 'text-amber-400 fill-amber-400' : 'text-surface-container-high'}`}
+                />
+              ))}
+            </div>
+            <span className="text-xs text-on-surface-variant font-medium">
+              ({product.rating.count.toLocaleString()})
+            </span>
+          </div>
+        )}
+
         <div className="flex justify-between items-center mt-auto">
-          <span className="text-lg font-bold text-on-surface">${product.price.toFixed(2)}</span>
+          <div className="flex items-center gap-2">
+            <span className="text-lg font-bold text-on-surface">${product.pricing.sellPrice.toFixed(2)}</span>
+            {product.pricing.compareAtPrice && (
+              <span className="text-sm text-on-surface-variant line-through">
+                ${product.pricing.compareAtPrice.toFixed(2)}
+              </span>
+            )}
+          </div>
           <ArrowRight className="text-primary w-5 h-5 soft-spring group-hover:translate-x-1" />
         </div>
       </div>

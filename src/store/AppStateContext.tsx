@@ -1,7 +1,7 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
-import { Product } from '../data/products';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { Product, products } from '../data/products';
 
-type ViewState = 'home' | 'faq' | 'shipping' | 'contact' | 'story';
+type ViewState = 'home' | 'faq' | 'shipping' | 'contact' | 'story' | 'checkout-success' | 'checkout-cancel';
 
 type AppStateContextType = {
   currentView: ViewState;
@@ -16,18 +16,55 @@ type AppStateContextType = {
 const AppStateContext = createContext<AppStateContextType | undefined>(undefined);
 
 export function AppStateProvider({ children }: { children: ReactNode }) {
-  const [currentView, setCurrentView] = useState<ViewState>('home');
+  const [currentView, setCurrentView] = useState<ViewState>(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('checkout') === 'success') return 'checkout-success';
+    if (params.get('checkout') === 'cancel') return 'checkout-cancel';
+    return 'home';
+  });
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isMenuOpen, setMenuOpen] = useState(false);
 
+  // Deep link: auto-open product from URL query param ?product=slug
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const productSlug = params.get('product');
+    if (productSlug) {
+      const found = products.find((p) => p.id === productSlug || p.slug === productSlug);
+      if (found) {
+        setSelectedProduct(found);
+      }
+    }
+  }, []);
+
   const navigate = (view: ViewState) => {
     setCurrentView(view);
-    setMenuOpen(false); // Close menu when navigating
+    setMenuOpen(false);
+    if (view !== 'checkout-success' && view !== 'checkout-cancel') {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('checkout');
+      url.searchParams.delete('session_id');
+      url.searchParams.delete('product');
+      window.history.replaceState({}, '', url.pathname);
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const openProduct = (product: Product) => setSelectedProduct(product);
-  const closeProduct = () => setSelectedProduct(null);
+  const openProduct = (product: Product) => {
+    setSelectedProduct(product);
+    // Update URL for shareability
+    const url = new URL(window.location.href);
+    url.searchParams.set('product', product.id);
+    window.history.replaceState({}, '', url.toString());
+  };
+
+  const closeProduct = () => {
+    setSelectedProduct(null);
+    // Clean product param from URL
+    const url = new URL(window.location.href);
+    url.searchParams.delete('product');
+    window.history.replaceState({}, '', url.pathname);
+  };
 
   return (
     <AppStateContext.Provider
